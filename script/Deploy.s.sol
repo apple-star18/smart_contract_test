@@ -54,7 +54,6 @@ contract DeployScript is Script {
 
         // ProvideLiquidity 배포
         ProvideLiquidity provider = new ProvideLiquidity(
-            address(pool),
             address(manager),
             address(calculator)
         );

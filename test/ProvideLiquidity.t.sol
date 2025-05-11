@@ -51,7 +51,7 @@ contract ProvideLiquidityTest is Test {
         mockManager = address(new MockPositionManager());
 
         calculator = new PriceCalculator();
-        provider = new ProvideLiquidity(mockPool, mockManager, address(calculator));
+        provider = new ProvideLiquidity(mockManager, address(calculator));
 
         token0.mint(user, 1_000_1000 ether);
         token1.mint(user, 1_000_1000 ether);
@@ -83,7 +83,7 @@ contract ProvideLiquidityTest is Test {
         uint256 widthBps = 100; // 1%
 
         vm.prank(user);
-        provider.provideLiquidity(amount0, amount1, widthBps);
+        provider.provideLiquidityToPool(address(mockPool) ,amount0, amount1, widthBps);
 
         // 유동성 일부만 소비된 것으로 가정
         // 잔여 토큰이 user에게 남아 있는지 확인

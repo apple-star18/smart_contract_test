@@ -10,22 +10,23 @@ import "../libs/TransferHelper.sol";
 import "../libs/TickUtils.sol";
 
 contract ProvideLiquidity {
-    IUniswapV3Pool public pool;
     INonfungiblePositionManager public positionManager;
     PriceCalculator public priceCalculator;
 
-    constructor(address _pool, address _positionManager, address _priceCalculator) {
-        pool = IUniswapV3Pool(_pool);
+    constructor(address _positionManager, address _priceCalculator) {
         positionManager = INonfungiblePositionManager(_positionManager);
         priceCalculator = PriceCalculator(_priceCalculator);
     }
 
-    function provideLiquidity(
+    function provideLiquidityToPool(
+        address poolAddress,
         uint256 amount0,
         uint256 amount1,
         uint256 widthBps
     ) external {
         // current sqrtPriceX96 query
+        IUniswapV3Pool pool = IUniswapV3Pool(poolAddress);
+
         (uint160 sqrtPriceX96, , , , , , ) = pool.slot0();
         
         // calculate price range
@@ -39,21 +40,21 @@ contract ProvideLiquidity {
         TransferHelper.safeApprove(IERC20(pool.token0()), address(positionManager), amount0);
         TransferHelper.safeApprove(IERC20(pool.token1()), address(positionManager), amount1);
 
-        (uint256 tokenId, uint256 liquidity, uint256 amount0Used, uint256 amount1Used) = positionManager.mint(
-            INonfungiblePositionManager.MintParams({
-                token0: pool.token0(),
-                token1: pool.token1(),
-                fee: pool.fee(),
-                tickLower: TickUtils.getTickAtSqrtRatio(lowerSqrtPrice),
-                tickUpper: TickUtils.getTickAtSqrtRatio(upperSqrtPrice),
-                amount0Desired: amount0,
-                amount1Desired: amount1,
-                amount0Min: 0,
-                amount1Min: 0,
-                recipient: msg.sender,
-                deadline: block.timestamp
-            })
-        );
+        INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
+            token0: pool.token0(),
+            token1: pool.token1(),
+            fee: pool.fee(),
+            tickLower: TickUtils.getTickAtSqrtRatio(lowerSqrtPrice),
+            tickUpper: TickUtils.getTickAtSqrtRatio(upperSqrtPrice),
+            amount0Desired: amount0,
+            amount1Desired: amount1,
+            amount0Min: 0,
+            amount1Min: 0,
+            recipient: msg.sender,
+            deadline: block.timestamp
+        });
+
+        (uint256 tokenId, uint256 liquidity, uint256 amount0Used, uint256 amount1Used) = positionManager.mint(params);
     
         // return surplus assets
         if (amount0Used < amount0) {
