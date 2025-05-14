@@ -65,11 +65,10 @@ contract ProvideLiquidityTest is Test {
 
         function testPriceRangeCalculation() public {
         uint160 sqrtPriceX96 = 79228162514264337593543950336; // 1.0 가격 (Q96) = 2**96
-        uint256 widthBps = 100; // 1% width
-
+        uint256 widthBps = 100; 
+        
         (uint160 lower, uint160 upper) = calculator.calculatePriceRange(sqrtPriceX96, widthBps);
 
-        // 대략적으로 확인 (정확히 계산하지 않더라도 sanity check)
         assertGt(uint256(upper), uint256(sqrtPriceX96));
         assertLt(uint256(lower), uint256(sqrtPriceX96));
 
@@ -85,8 +84,6 @@ contract ProvideLiquidityTest is Test {
         vm.prank(user);
         provider.provideLiquidityToPool(address(mockPool) ,amount0, amount1, widthBps);
 
-        // 유동성 일부만 소비된 것으로 가정
-        // 잔여 토큰이 user에게 남아 있는지 확인
         uint256 remaining0 = token0.balanceOf(user);
         uint256 remaining1 = token1.balanceOf(user);
 

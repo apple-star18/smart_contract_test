@@ -40,12 +40,16 @@ contract ProvideLiquidity {
         TransferHelper.safeApprove(IERC20(pool.token0()), address(positionManager), amount0);
         TransferHelper.safeApprove(IERC20(pool.token1()), address(positionManager), amount1);
 
+        //convert price to ticks
+        int24 lowerTick = TickUtils.getTickAtSqrtRatio(lowerSqrtPrice);
+        int24 upperTick = TickUtils.getTickAtSqrtRatio(upperSqrtPrice);
+
         INonfungiblePositionManager.MintParams memory params = INonfungiblePositionManager.MintParams({
             token0: pool.token0(),
             token1: pool.token1(),
             fee: pool.fee(),
-            tickLower: TickUtils.getTickAtSqrtRatio(lowerSqrtPrice),
-            tickUpper: TickUtils.getTickAtSqrtRatio(upperSqrtPrice),
+            tickLower: lowerTick,
+            tickUpper: upperTick,
             amount0Desired: amount0,
             amount1Desired: amount1,
             amount0Min: 0,
